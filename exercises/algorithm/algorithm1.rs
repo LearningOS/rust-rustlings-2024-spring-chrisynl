@@ -2,11 +2,11 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
 use std::vec::*;
+use std::cmp::PartialOrd;
 
 #[derive(Debug)]
 struct Node<T> {
@@ -23,19 +23,28 @@ impl<T> Node<T> {
     }
 }
 #[derive(Debug)]
-struct LinkedList<T> {
+struct LinkedList<T> 
+where
+    T: PartialEq + PartialOrd + Clone
+{
     length: u32,
     start: Option<NonNull<Node<T>>>,
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+impl<T> Default for LinkedList<T>
+where
+    T: PartialEq + PartialOrd + Clone
+{
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T> LinkedList<T>
+where
+    T: PartialEq + PartialOrd + Clone
+{
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -71,18 +80,39 @@ impl<T> LinkedList<T> {
     }
 	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
 	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+        let mut dummy = LinkedList::<T>::new();
+        let (mut p1, mut p2) = (list_a.start, list_b.start);
+        while let (Some(nx_ptr1), Some(nx_ptr2)) = (p1, p2) {
+            unsafe {
+
+            let (v1, v2) = ((*nx_ptr1.as_ptr()).val.to_owned(), (*nx_ptr2.as_ptr()).val.to_owned());
+            if v1 < v2 {
+                dummy.add(v1);
+                p1 = (*nx_ptr1.as_ptr()).next;
+            } else {
+                dummy.add(v2);
+                p2 = (*nx_ptr2.as_ptr()).next;
+            }
+            }
         }
+        unsafe {
+
+        while let Some(nx_ptr1) = p1 {
+            dummy.add((*nx_ptr1.as_ptr()).val.to_owned());
+            p1 = (*nx_ptr1.as_ptr()).next;
+        }
+        while let Some(nx_ptr2) = p2 {
+            dummy.add((*nx_ptr2.as_ptr()).val.to_owned());
+            p2 = (*nx_ptr2.as_ptr()).next;
+        }
+        }
+        dummy
 	}
 }
 
 impl<T> Display for LinkedList<T>
 where
-    T: Display,
+    T: Display + PartialEq + PartialOrd + Clone
 {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self.start {
