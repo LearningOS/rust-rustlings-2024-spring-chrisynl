@@ -2,14 +2,13 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
 
 pub struct Heap<T>
 where
-    T: Default,
+    T: Default + Copy,
 {
     count: usize,
     items: Vec<T>,
@@ -18,7 +17,7 @@ where
 
 impl<T> Heap<T>
 where
-    T: Default,
+    T: Default + Copy,
 {
     pub fn new(comparator: fn(&T, &T) -> bool) -> Self {
         Self {
@@ -36,8 +35,19 @@ where
         self.len() == 0
     }
 
+    fn up(&mut self, idx: usize) {
+        let p_idx = self.parent_idx(idx);
+        if p_idx != idx && !(self.comparator)(&self.items[p_idx], &self.items[idx]) {
+            self.items.swap(p_idx, idx);
+            self.up(p_idx);
+        }
+    }
+
     pub fn add(&mut self, value: T) {
-        //TODO
+        self.items.push(value);
+        self.items[self.count] = value;
+        self.count += 1;
+        self.up(self.count - 1);
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -56,15 +66,35 @@ where
         self.left_child_idx(idx) + 1
     }
 
-    fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+    fn down(&mut self, idx: usize) {
+        let mut t = idx;
+        let n = self.count;
+        let (l_idx, r_idx) = (self.left_child_idx(t), self.right_child_idx(t));
+        if l_idx < n && !(self.comparator)(&self.items[t], &self.items[l_idx]) {
+            t = l_idx;
+        }
+        if r_idx < n && !(self.comparator)(&self.items[t], &self.items[r_idx]) {
+            t = r_idx;
+        }
+        if idx != t {
+            self.items.swap(idx, t);
+            self.down(t);
+        }
+    }
+
+    pub fn smallest_child_idx(&mut self) -> Option<T> {
+        if self.count == 0 { return None; }
+        let res = self.items[0].clone();     
+        self.items.swap(0, self.count - 1);
+        self.count -= 1;
+        self.down(0);
+        Some(res)
     }
 }
 
 impl<T> Heap<T>
 where
-    T: Default + Ord,
+    T: Default + Ord + Copy,
 {
     /// Create a new MinHeap
     pub fn new_min() -> Self {
@@ -79,13 +109,12 @@ where
 
 impl<T> Iterator for Heap<T>
 where
-    T: Default,
+    T: Default + Copy,
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        self.smallest_child_idx()
     }
 }
 
@@ -95,7 +124,7 @@ impl MinHeap {
     #[allow(clippy::new_ret_no_self)]
     pub fn new<T>() -> Heap<T>
     where
-        T: Default + Ord,
+        T: Default + Ord + Copy,
     {
         Heap::new(|a, b| a < b)
     }
@@ -107,7 +136,7 @@ impl MaxHeap {
     #[allow(clippy::new_ret_no_self)]
     pub fn new<T>() -> Heap<T>
     where
-        T: Default + Ord,
+        T: Default + Ord + Copy,
     {
         Heap::new(|a, b| a > b)
     }

@@ -2,7 +2,6 @@
 	graph
 	This problem requires you to implement a basic graph functio
 */
-// I AM NOT DONE
 
 use std::collections::{HashMap, HashSet};
 use std::fmt;
@@ -29,7 +28,13 @@ impl Graph for UndirectedGraph {
         &self.adjacency_table
     }
     fn add_edge(&mut self, edge: (&str, &str, i32)) {
-        //TODO
+        let (node_a, node_b, w) = (String::from(edge.0), String::from(edge.1), edge.2);
+        self.adjacency_table.entry(node_a.clone())
+            .and_modify(|e| (*e).push((node_b.clone(), w)))
+            .or_insert(vec![(node_b.clone(), w)]);
+        self.adjacency_table.entry(node_b.clone())
+            .and_modify(|e| (*e).push((node_a.clone(), w)))
+            .or_insert(vec![(node_a.clone(), w)]);
     }
 }
 pub trait Graph {
@@ -37,8 +42,13 @@ pub trait Graph {
     fn adjacency_table_mutable(&mut self) -> &mut HashMap<String, Vec<(String, i32)>>;
     fn adjacency_table(&self) -> &HashMap<String, Vec<(String, i32)>>;
     fn add_node(&mut self, node: &str) -> bool {
-        //TODO
-		true
+        let node = String::from(node);
+        let table = self.adjacency_table_mutable();
+        if !table.contains_key(&node) {
+            table.entry(node).or_insert(vec![]);
+            return true;
+        }
+        false
     }
     fn add_edge(&mut self, edge: (&str, &str, i32)) {
         //TODO
